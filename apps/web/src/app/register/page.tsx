@@ -54,6 +54,17 @@ export default function RegisterPage() {
     await signIn("google", { callbackUrl: "/dashboard" });
   };
 
+  const handleCredentialsSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email");
+    const password = formData.get("password");
+    
+    // We pass the role directly to credentials
+    await signIn("credentials", { email, password, role: selectedRole, callbackUrl: "/dashboard" });
+  };
+
   if (status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -163,10 +174,53 @@ export default function RegisterPage() {
             </div>
             <div className="relative flex justify-center text-xs">
               <span className="bg-white px-3 text-gray-400 dark:bg-[#0d1b2e] dark:text-gray-500">
-                email/password coming in Phase 3
+                or sign up with email
               </span>
             </div>
           </div>
+
+          {/* Email form */}
+          <form onSubmit={handleCredentialsSignUp} className="space-y-3 mb-6">
+            <div>
+              <label
+                htmlFor="register-email"
+                className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Email address
+              </label>
+              <input
+                id="register-email"
+                name="email"
+                type="email"
+                required
+                placeholder="you@example.com"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#2D7FF9] focus:outline-none focus:ring-1 focus:ring-[#2D7FF9] dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-[#2D7FF9]"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="register-password"
+                className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Password
+              </label>
+              <input
+                id="register-password"
+                name="password"
+                type="password"
+                required
+                placeholder="••••••••"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#2D7FF9] focus:outline-none focus:ring-1 focus:ring-[#2D7FF9] dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-[#2D7FF9]"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="mt-4 w-full rounded-xl bg-[#0F3B5C] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[#0F3B5C]/90 focus:outline-none focus:ring-2 focus:ring-[#0F3B5C] focus:ring-offset-2 disabled:opacity-70 dark:bg-[#2D7FF9] dark:hover:bg-[#2D7FF9]/90"
+            >
+              {isLoading ? "Signing up..." : "Sign up with Email"}
+            </button>
+          </form>
 
           {/* Sign in link */}
           <div className="text-center text-sm text-gray-500 dark:text-gray-400">

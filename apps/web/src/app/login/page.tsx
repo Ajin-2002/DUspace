@@ -25,6 +25,16 @@ export default function LoginPage() {
     await signIn("google", { callbackUrl: "/dashboard" });
   };
 
+  const handleCredentialsSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email");
+    const password = formData.get("password");
+    
+    await signIn("credentials", { email, password, callbackUrl: "/dashboard" });
+  };
+
   if (status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -85,8 +95,8 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Email form — Coming soon stub */}
-          <div className="space-y-3">
+          {/* Email form */}
+          <form onSubmit={handleCredentialsSignIn} className="space-y-3">
             <div>
               <label
                 htmlFor="login-email"
@@ -96,10 +106,11 @@ export default function LoginPage() {
               </label>
               <input
                 id="login-email"
+                name="email"
                 type="email"
-                disabled
+                required
                 placeholder="you@example.com"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-400 placeholder-gray-300 dark:border-white/10 dark:bg-white/5 dark:text-gray-500 cursor-not-allowed"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#2D7FF9] focus:outline-none focus:ring-1 focus:ring-[#2D7FF9] dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-[#2D7FF9]"
               />
             </div>
             <div>
@@ -111,16 +122,21 @@ export default function LoginPage() {
               </label>
               <input
                 id="login-password"
+                name="password"
                 type="password"
-                disabled
+                required
                 placeholder="••••••••"
-                className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-400 placeholder-gray-300 dark:border-white/10 dark:bg-white/5 dark:text-gray-500 cursor-not-allowed"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#2D7FF9] focus:outline-none focus:ring-1 focus:ring-[#2D7FF9] dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-[#2D7FF9]"
               />
             </div>
-            <div className="rounded-xl bg-amber-50 px-4 py-3 text-xs text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">
-              📧 Email/password login is coming in Phase 3. Use Google sign-in above.
-            </div>
-          </div>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="mt-4 w-full rounded-xl bg-[#0F3B5C] px-4 py-3 text-sm font-semibold text-white transition-all hover:bg-[#0F3B5C]/90 focus:outline-none focus:ring-2 focus:ring-[#0F3B5C] focus:ring-offset-2 disabled:opacity-70 dark:bg-[#2D7FF9] dark:hover:bg-[#2D7FF9]/90"
+            >
+              {isLoading ? "Signing in..." : "Sign in with Email"}
+            </button>
+          </form>
 
           {/* Footer links */}
           <div className="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
