@@ -58,11 +58,39 @@ export default function RegisterPage() {
     e.preventDefault();
     setIsLoading(true);
     const formData = new FormData(e.currentTarget);
+    const name = formData.get("name");
     const email = formData.get("email");
     const password = formData.get("password");
     
-    // We pass the role directly to credentials
-    await signIn("credentials", { email, password, role: selectedRole, callbackUrl: "/dashboard" });
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+    
+    try {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role: selectedRole
+        }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        alert(data.error || "Registration failed");
+        setIsLoading(false);
+        return;
+      }
+      
+      // If successful, log them in via NextAuth credentials provider
+      await signIn("credentials", { email, password, callbackUrl: "/dashboard" });
+    } catch (error) {
+      console.error(error);
+      alert("Registration failed");
+      setIsLoading(false);
+    }
   };
 
   if (status === "loading") {
@@ -181,6 +209,22 @@ export default function RegisterPage() {
 
           {/* Email form */}
           <form onSubmit={handleCredentialsSignUp} className="space-y-3 mb-6">
+            <div>
+              <label
+                htmlFor="register-name"
+                className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Full Name
+              </label>
+              <input
+                id="register-name"
+                name="name"
+                type="text"
+                required
+                placeholder="John Doe"
+                className="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#2D7FF9] focus:outline-none focus:ring-1 focus:ring-[#2D7FF9] dark:border-white/10 dark:bg-white/5 dark:text-white dark:focus:border-[#2D7FF9]"
+              />
+            </div>
             <div>
               <label
                 htmlFor="register-email"

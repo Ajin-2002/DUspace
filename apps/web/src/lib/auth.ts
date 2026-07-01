@@ -20,15 +20,34 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        // Mock DB lookup/creation
-        const role = (credentials.role === "developer" ? "developer" : "user") as "user" | "developer";
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        
+        try {
+          const res = await fetch(`${API_URL}/api/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: credentials.email,
+              password: credentials.password,
+            }),
+          });
 
-        return {
-          id: `mock-id-${credentials.email}`,
-          name: credentials.email.split("@")[0],
-          email: credentials.email,
-          role,
-        };
+          const data = await res.json();
+
+          if (res.ok && data.user) {
+            return {
+              id: data.user.id,
+              name: data.user.name,
+              email: data.user.email,
+              role: data.user.role,
+              token: data.token,
+            };
+          }
+          return null;
+        } catch (error) {
+          console.error("Auth error:", error);
+          return null;
+        }
       }
     }),
   ],
@@ -47,9 +66,10 @@ export const authOptions: NextAuthOptions = {
       // On first sign in, populate token from user
       if (user) {
         token.id = user.id;
-        // Check if a role was pre-selected during registration (stored in a cookie)
-        // Default to "user" if nothing set
         token.role = (user.role as "user" | "developer") ?? "user";
+        if (user.token) {
+          token.token = user.token;
+        }
       }
 
       // If account is present (OAuth flow), we can also read role from account
@@ -64,6 +84,9 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as "user" | "developer") ?? "user";
+        if (token.token) {
+          session.user.token = token.token as string;
+        }
       }
       return session;
     },
