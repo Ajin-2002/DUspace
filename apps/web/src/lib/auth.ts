@@ -20,7 +20,7 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
         
         try {
           const res = await fetch(`${API_URL}/api/auth/login`, {
@@ -32,9 +32,17 @@ export const authOptions: NextAuthOptions = {
             }),
           });
 
-          const data = await res.json();
+          // Read as text first to handle empty or HTML responses gracefully
+          const text = await res.text();
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (e) {
+            console.error("Failed to parse JSON response from auth API:", text);
+            return null;
+          }
 
-          if (res.ok && data.user) {
+          if (res.ok && data?.user) {
             return {
               id: data.user.id,
               name: data.user.name,
