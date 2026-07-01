@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: duspace-api
+    env: node
+    region: oregon
+    buildCommand: pnpm install && pnpm build
+    startCommand: pnpm start
+    rootDir: apps/api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false   # set this manually in Render dashboard
+      - key: JWT_SECRET
+        sync: false   # set this manually in Render dashboard
+      - key: CLIENT_URL
+        sync: false   # set to your frontend URL (e.g. https://your-app.vercel.app)
