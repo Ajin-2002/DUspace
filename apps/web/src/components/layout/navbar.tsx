@@ -177,7 +177,7 @@ export default function Navbar() {
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/10"
                   >
-                    <span>📊</span>
+                    <span></span>
                     {session.user?.role === "developer"
                       ? "Developer Portal"
                       : "My Dashboard"}
@@ -190,7 +190,7 @@ export default function Navbar() {
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/10"
                     >
-                      <span>🚀</span>
+                      <span></span>
                       Submit an App
                     </Link>
                   )}
@@ -201,7 +201,7 @@ export default function Navbar() {
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/10"
                   >
-                    <span>⚙️</span>
+                    <span></span>
                     Settings
                   </Link>
 
@@ -211,7 +211,7 @@ export default function Navbar() {
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
                     >
-                      <span>🚪</span>
+                      <span></span>
                       Sign Out
                     </button>
                   </div>
