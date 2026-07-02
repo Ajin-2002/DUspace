@@ -5,7 +5,7 @@ export default function Footer() {
     <footer className="border-t mt-20">
       <Container className="py-10 text-sm text-gray-600">
         <div className="flex flex-col gap-6 md:flex-row md:justify-between">
-          
+
           <div>
             <h2 className="font-bold text-[#0F3B5C] text-lg">DUspace</h2>
             <p className="mt-2 max-w-sm">
