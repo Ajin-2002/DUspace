@@ -13,7 +13,6 @@ export const authOptions: NextAuthOptions = {
       credentials: {
         email: { label: "Email", type: "email", placeholder: "you@example.com" },
         password: { label: "Password", type: "password" },
-        role: { label: "Role", type: "text" }
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -48,6 +47,9 @@ export const authOptions: NextAuthOptions = {
               name: data.user.name,
               email: data.user.email,
               role: data.user.role,
+              isDeveloper: data.user.isDeveloper,
+              developerStatus: data.user.developerStatus,
+              developerProfile: data.user.developerProfile,
               token: data.token,
             };
           }
@@ -70,11 +72,30 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session }) {
+      // If updating session manually
+      if (trigger === "update" && session) {
+        if (session.user?.isDeveloper !== undefined) {
+          token.isDeveloper = session.user.isDeveloper;
+        }
+        if (session.user?.role) {
+          token.role = session.user.role;
+        }
+        if (session.user?.developerStatus) {
+          token.developerStatus = session.user.developerStatus;
+        }
+        if (session.user?.developerProfile) {
+          token.developerProfile = session.user.developerProfile;
+        }
+      }
+
       // On first sign in, populate token from user
       if (user) {
         token.id = user.id;
         token.role = (user.role as "user" | "developer") ?? "user";
+        token.isDeveloper = user.isDeveloper ?? false;
+        token.developerStatus = user.developerStatus;
+        token.developerProfile = user.developerProfile;
         if (user.token) {
           token.token = user.token;
         }
@@ -92,6 +113,14 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = (token.role as "user" | "developer") ?? "user";
+        session.user.isDeveloper = token.isDeveloper as boolean;
+        
+        if (token.developerStatus) {
+          session.user.developerStatus = token.developerStatus as "none" | "pending" | "approved" | "rejected";
+        }
+        if (token.developerProfile) {
+          session.user.developerProfile = token.developerProfile as any;
+        }
         if (token.token) {
           session.user.token = token.token as string;
         }
@@ -123,3 +152,4 @@ export const authOptions: NextAuthOptions = {
 
   debug: process.env.NODE_ENV === "development",
 };
+

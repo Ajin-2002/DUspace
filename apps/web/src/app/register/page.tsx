@@ -19,35 +19,11 @@ import {
   Sparkles
 } from "lucide-react";
 
-type Role = "user" | "developer";
-
-const ROLES: {
-  value: Role;
-  label: string;
-  icon: React.ReactNode;
-  description: string;
-  perks: string[];
-}[] = [
-    {
-      value: "user",
-      label: "App User",
-      icon: <LayoutGrid className="h-4 w-4" />,
-      description: "Discover, download, and review apps",
-      perks: ["Browse thousands of apps", "Leave reviews & ratings", "Wishlist & collections"],
-    },
-    {
-      value: "developer",
-      label: "Developer",
-      icon: <Code2 className="h-4 w-4" />,
-      description: "Publish and manage your own apps",
-      perks: ["Publish unlimited apps", "Analytics dashboard", "Developer monetization"],
-    },
-  ];
+// Roles array removed since we only have one registration path now
 
 export default function RegisterPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [selectedRole, setSelectedRole] = useState<Role>("user");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -61,7 +37,6 @@ export default function RegisterPage() {
 
   const handleGoogleSignUp = async () => {
     setIsLoading(true);
-    sessionStorage.setItem("pendingRole", selectedRole);
     await signIn("google", { callbackUrl: "/dashboard" });
   };
 
@@ -83,7 +58,6 @@ export default function RegisterPage() {
           name,
           email,
           password,
-          role: selectedRole
         }),
       });
 
@@ -229,59 +203,7 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Role Selection */}
-            <div className="mb-4">
-              <p className="mb-2 text-xs font-medium text-neutral-700">
-                I want to join as…
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {ROLES.map((role) => (
-                  <button
-                    key={role.value}
-                    type="button"
-                    onClick={() => setSelectedRole(role.value)}
-                    className={cn(
-                      "group relative flex flex-col items-start rounded-lg border-2 p-3 text-left transition-all duration-200",
-                      selectedRole === role.value
-                        ? "border-neutral-900 bg-neutral-50 shadow-sm"
-                        : "border-neutral-200 bg-white hover:border-neutral-300"
-                    )}
-                  >
-                    <div className={cn(
-                      "mb-2 rounded-lg p-1.5 transition-colors",
-                      selectedRole === role.value
-                        ? "bg-neutral-900 text-white"
-                        : "bg-neutral-100 text-neutral-600 group-hover:bg-neutral-200"
-                    )}>
-                      {role.icon}
-                    </div>
-                    <span className="text-sm font-medium text-neutral-900">
-                      {role.label}
-                    </span>
-                    <span className="mt-0.5 text-[10px] text-neutral-500">
-                      {role.description}
-                    </span>
-                    <ul className="mt-2 space-y-0.5">
-                      {role.perks.map((perk) => (
-                        <li
-                          key={perk}
-                          className="flex items-center gap-1 text-[10px] text-neutral-600"
-                        >
-                          <Check className="h-2.5 w-2.5 text-neutral-900" strokeWidth={2.5} />
-                          {perk}
-                        </li>
-                      ))}
-                    </ul>
-
-                    {selectedRole === role.value && (
-                      <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-neutral-900 text-white">
-                        <Check className="h-3 w-3" strokeWidth={3} />
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+            {/* Role Selection Removed - Everyone starts as a regular user */}
 
             {/* Google Sign Up */}
             <button

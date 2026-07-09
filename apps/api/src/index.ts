@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import connectDB from "./db";
 import authRouter from "./routes/auth";
+import developerRouter from "./routes/developer";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -23,6 +24,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/api/auth", authRouter);
+app.use("/api/developer", developerRouter);
 
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
@@ -38,3 +40,4 @@ async function start() {
 }
 
 start();
+

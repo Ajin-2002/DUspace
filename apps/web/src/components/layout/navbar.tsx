@@ -52,8 +52,7 @@ export default function Navbar() {
   }, []);
 
   const isLoading = status === "loading";
-  const dashboardHref =
-    session?.user?.role === "developer" ? "/developer" : "/dashboard";
+  const dashboardHref = "/dashboard";
 
   return (
     <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white/80 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-950/80">
@@ -172,18 +171,28 @@ export default function Navbar() {
 
                   {/* Menu items */}
                   <Link
-                    href={dashboardHref}
+                    href="/dashboard"
                     role="menuitem"
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/10"
                   >
                     <span></span>
-                    {session.user?.role === "developer"
-                      ? "Developer Portal"
-                      : "My Dashboard"}
+                    My Dashboard
                   </Link>
 
-                  {session.user?.role === "developer" && (
+                  {session.user?.isDeveloper && (
+                    <Link
+                      href="/developer"
+                      role="menuitem"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/10"
+                    >
+                      <span></span>
+                      Developer Portal
+                    </Link>
+                  )}
+
+                  {session.user?.isDeveloper && (
                     <Link
                       href="/developer/submit"
                       role="menuitem"

@@ -4,8 +4,8 @@ import User from "../models/User";
 
 const router = Router();
 
-function signToken(id: string, role: "user" | "developer"): string {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET as string, {
+function signToken(id: string, role: "user" | "developer", isDeveloper: boolean): string {
+  return jwt.sign({ id, role, isDeveloper }, process.env.JWT_SECRET as string, {
     expiresIn: "7d",
   });
 }
@@ -13,7 +13,7 @@ function signToken(id: string, role: "user" | "developer"): string {
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
 router.post("/register", async (req: Request, res: Response): Promise<void> => {
   try {
-    const { name, email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
       res.status(400).json({ error: "Name, email and password are required" });
@@ -26,16 +26,19 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    // All new users start as regular users — they can upgrade to developer later
     const user = new User({
       name,
       email,
       password,
-      role: role === "developer" ? "developer" : "user",
+      role: "user",
+      isDeveloper: false,
+      developerStatus: "none",
     });
 
     await user.save();
 
-    const token = signToken(user._id.toString(), user.role);
+    const token = signToken(user._id.toString(), user.role, user.isDeveloper);
 
     res.status(201).json({
       message: "Account created",
@@ -45,6 +48,8 @@ router.post("/register", async (req: Request, res: Response): Promise<void> => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isDeveloper: user.isDeveloper,
+        developerStatus: user.developerStatus,
       },
     });
   } catch (err) {
@@ -76,7 +81,7 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const token = signToken(user._id.toString(), user.role);
+    const token = signToken(user._id.toString(), user.role, user.isDeveloper);
 
     res.json({
       token,
@@ -85,6 +90,9 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
         name: user.name,
         email: user.email,
         role: user.role,
+        isDeveloper: user.isDeveloper,
+        developerStatus: user.developerStatus,
+        developerProfile: user.developerProfile,
       },
     });
   } catch (err) {
@@ -109,6 +117,9 @@ router.get("/me", requireAuth, async (req: AuthRequest, res: Response): Promise<
       email: user.email,
       role: user.role,
       avatar: user.avatar,
+      isDeveloper: user.isDeveloper,
+      developerStatus: user.developerStatus,
+      developerProfile: user.developerProfile,
     });
   } catch (err) {
     res.status(500).json({ error: "Server error" });
@@ -116,3 +127,4 @@ router.get("/me", requireAuth, async (req: AuthRequest, res: Response): Promise<
 });
 
 export default router;
+

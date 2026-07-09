@@ -6,15 +6,13 @@ export default withAuth(
     const { pathname } = req.nextUrl;
     const token = req.nextauth.token;
 
-    // Role-based redirect: developer hitting /dashboard → send to /developer
-    if (pathname.startsWith("/dashboard") && token?.role === "developer") {
-      return NextResponse.redirect(new URL("/developer", req.url));
-    }
-
-    // Role-based redirect: user hitting /developer → send to /dashboard
+    // Normal users shouldn't access developer pages unless they upgrade
     if (pathname.startsWith("/developer") && token?.role === "user") {
       return NextResponse.redirect(new URL("/dashboard", req.url));
     }
+
+    // Notice we removed the redirect that forced developers away from /dashboard.
+    // Since accounts are unified, developers are allowed to view the normal user dashboard.
 
     return NextResponse.next();
   },
