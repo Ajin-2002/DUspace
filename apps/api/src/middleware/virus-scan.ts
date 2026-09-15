@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import fs from "fs/promises";
+import { createReadStream } from "fs";
 import path from "path";
 import crypto from "crypto";
 
@@ -190,9 +191,9 @@ export function virusScanMiddleware(config: VirusScanConfig) {
 export async function generateFileHash(filePath: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const hash = crypto.createHash("sha256");
-    const stream = fs.createReadStream(filePath);
+    const stream = createReadStream(filePath);
 
-    stream.on("data", (data) => hash.update(data));
+    stream.on("data", (data: string | Buffer) => hash.update(data));
     stream.on("end", () => resolve(hash.digest("hex")));
     stream.on("error", reject);
   });
