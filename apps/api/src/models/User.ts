@@ -5,6 +5,11 @@ export interface IDeveloperProfile {
   displayName: string;
   bio?: string;
   website?: string;
+  avatar?: string;
+  skills: string[];
+  githubUrl?: string;
+  twitterUrl?: string;
+  linkedinUrl?: string;
   registeredAt: Date;
 }
 
@@ -27,6 +32,11 @@ const DeveloperProfileSchema = new Schema<IDeveloperProfile>(
     displayName: { type: String, required: true, trim: true },
     bio: { type: String, trim: true },
     website: { type: String, trim: true },
+    avatar: { type: String },
+    skills: [{ type: String, trim: true }],
+    githubUrl: { type: String, trim: true },
+    twitterUrl: { type: String, trim: true },
+    linkedinUrl: { type: String, trim: true },
     registeredAt: { type: Date, default: Date.now },
   },
   { _id: false }

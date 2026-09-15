@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Code, CheckCircle, ArrowRight, ExternalLink } from "lucide-react";
+import { getApiUrl } from "@/lib/api";
 
 export default function DeveloperSpacePage() {
   const { data: session, update } = useSession();
@@ -23,10 +24,8 @@ export default function DeveloperSpacePage() {
     const bio = formData.get("bio") as string;
     const website = formData.get("website") as string;
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-    
     try {
-      const res = await fetch(`${API_URL}/api/developer/register`, {
+      const res = await fetch(getApiUrl("/api/developer/register"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

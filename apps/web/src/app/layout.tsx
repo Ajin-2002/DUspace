@@ -26,13 +26,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body>
+    <html lang="en" suppressHydrationWarning className="h-full">
+      <body className="flex h-full flex-col overflow-hidden">
         <NextAuthProvider>
           <ThemeProvider>
             <Navbar />
-            <main className="min-h-screen">{children}</main>
-            <Footer />
+            <div className="flex-1 overflow-y-auto">
+              {children}
+            </div>
           </ThemeProvider>
         </NextAuthProvider>
       </body>

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { getApiUrl } from "@/lib/api";
 import {
   Mail,
   User,
@@ -48,10 +49,8 @@ export default function RegisterPage() {
     const email = formData.get("email");
     const password = formData.get("password");
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-
     try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
+      const res = await fetch(getApiUrl("/api/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -187,7 +186,7 @@ export default function RegisterPage() {
 
       {/* RIGHT SIDE - Registration Form */}
       <div className="flex-1 flex items-center justify-center bg-neutral-50 px-6 py-6 lg:px-8">
-        <div className="w-full max-w-[440px]">
+        <div className="w-full max-w-110">
           <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
             {/* Header */}
             <div className="mb-5">

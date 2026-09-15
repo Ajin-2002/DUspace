@@ -16,32 +16,32 @@ export default function DashboardLayout({
 
   return (
     <AuthGuard>
-      <div className="flex min-h-screen bg-neutral-50">
+      <div className="flex h-full bg-neutral-50">
         <UserSidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
         />
 
-        {/* Main Content */}
-        <main className="flex-1 overflow-x-hidden p-6">
-          <div className="max-w-7xl mx-auto">
-            {/* Mobile Header */}
-            <div className="mb-6 flex items-center justify-between lg:hidden">
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="rounded-lg p-2 text-neutral-600 transition hover:bg-neutral-100"
-              >
-                <Menu className="h-6 w-6" />
-              </button>
-              <div className="flex items-center gap-2">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 text-xs font-medium text-white shadow-md">
-                  {session?.user?.name?.charAt(0) || "U"}
-                </div>
-              </div>
+        {/* Main Content — only this scrolls */}
+        <main className="flex flex-1 min-w-0 flex-col overflow-y-auto">
+          {/* Mobile Header */}
+          <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-neutral-100 bg-white px-4 lg:hidden">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="rounded-lg p-2 text-neutral-500 transition hover:bg-neutral-100"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold text-white">
+              {session?.user?.name?.charAt(0) || "U"}
             </div>
+          </div>
 
-            {/* Page Content */}
-            {children}
+          {/* Page Content */}
+          <div className="flex-1 p-6">
+            <div className="max-w-7xl mx-auto">
+              {children}
+            </div>
           </div>
         </main>
       </div>

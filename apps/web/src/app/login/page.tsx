@@ -145,7 +145,7 @@ export default function LoginPage() {
 
       {/* RIGHT SIDE - Login Form */}
       <div className="flex-1 flex items-center justify-center bg-neutral-50 px-6 py-6 lg:px-8">
-        <div className="w-full max-w-[440px]">
+        <div className="w-full max-w-110">
           <div className="rounded-xl border border-neutral-200 bg-white p-6 shadow-sm">
             {/* Header */}
             <div className="mb-5">

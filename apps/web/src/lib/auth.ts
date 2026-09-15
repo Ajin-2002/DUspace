@@ -1,6 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { getApiUrl } from "@/lib/api";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -19,10 +20,8 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
-        
         try {
-          const res = await fetch(`${API_URL}/api/auth/login`, {
+          const res = await fetch(getApiUrl("/api/auth/login"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -87,6 +86,9 @@ export const authOptions: NextAuthOptions = {
         if (session.user?.developerProfile) {
           token.developerProfile = session.user.developerProfile;
         }
+        if (session.user?.token) {
+          token.token = session.user.token;
+        }
       }
 
       // On first sign in, populate token from user
@@ -98,12 +100,48 @@ export const authOptions: NextAuthOptions = {
         token.developerProfile = user.developerProfile;
         if (user.token) {
           token.token = user.token;
+        } else if (account?.provider === "google") {
+          // For Google OAuth users, create/get them in the backend and get a token
+          try {
+            const res = await fetch(getApiUrl("/api/auth/oauth"), {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                name: user.name,
+                email: user.email,
+                image: user.image,
+              }),
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              token.token = data.token;
+
+              // Sync developer status from the database so it persists
+              // across sign-out → re-login cycles for OAuth users
+              if (data.user) {
+                token.isDeveloper = data.user.isDeveloper ?? false;
+                token.role = data.user.role ?? "user";
+                if (data.user.developerStatus) {
+                  token.developerStatus = data.user.developerStatus;
+                }
+                if (data.user.developerProfile) {
+                  token.developerProfile = data.user.developerProfile;
+                }
+              }
+            }
+          } catch (err) {
+            console.error("Failed to get OAuth token:", err);
+          }
         }
       }
 
-      // If account is present (OAuth flow), we can also read role from account
-      if (account) {
-        token.provider = account.provider;
+      // Guard: if no API token exists on a persisted session, invalidate it so
+      // the user is forced to re-sign-in instead of silently sending "Bearer undefined"
+      // to the API. This happens when the API was down during the original login.
+      if (!token.token && !user) {
+        console.warn("[auth] Session has no API token — invalidating to force re-login");
+        return { ...token, error: "NoApiToken" };
       }
 
       return token;

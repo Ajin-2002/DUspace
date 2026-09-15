@@ -4,21 +4,19 @@ import { useSession, signOut } from "next-auth/react";
 import { useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { useTheme } from "@/providers/theme-provider";
 import Container from "./container";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
-import { Sun, Moon } from "lucide-react";
 
 /* ────────────────────────────────────────────────────────────
    DATA
 ──────────────────────────────────────────────────────────── */
 
-const NAV_LINKS = [
-  { href: "/apps", label: "Apps" },
-  { href: "/categories", label: "Categories" },
-  { href: "/developers", label: "Developers" },
-];
+// const NAV_LINKS = [
+//   { href: "/apps", label: "Apps" },
+//   { href: "/categories", label: "Categories" },
+//   { href: "/developers", label: "Developers" },
+// ];
 
 /* ────────────────────────────────────────────────────────────
    SMALL COMPONENTS — mirrors the "Mark" pattern from the homepage
@@ -26,14 +24,13 @@ const NAV_LINKS = [
 
 function Mark({ children }: { children: React.ReactNode }) {
   return (
-    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-900 font-mono text-xs font-medium text-white transition group-hover:scale-105 dark:bg-white dark:text-neutral-900">
+    <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-neutral-900 font-mono text-xs font-medium text-white transition group-hover:scale-105">
       {children}
     </span>
   );
 }
 
 export default function Navbar() {
-  const { theme, toggleTheme } = useTheme();
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -55,18 +52,18 @@ export default function Navbar() {
   const dashboardHref = "/dashboard";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-neutral-200 bg-white/80 backdrop-blur-xl dark:border-white/10 dark:bg-neutral-950/80">
+    <header className="sticky top-0 z-50 shrink-0 border-b border-neutral-200/80 bg-white/90 backdrop-blur-md">
       <Container className="flex h-16 items-center justify-between">
         {/* Logo — same square-mark language as the homepage app cards */}
         <Link href="/" className="group flex items-center gap-2.5">
           <Mark>D</Mark>
-          <span className="text-[15px] font-semibold tracking-tight text-neutral-900 dark:text-white">
+          <span className="text-[15px] font-semibold tracking-tight text-neutral-900">
             DUspace
           </span>
         </Link>
 
         {/* Desktop nav links — pill indicator slides under the active item */}
-        <nav className="hidden items-center gap-1 md:flex">
+        {/* <nav className="hidden items-center gap-1 md:flex">
           {NAV_LINKS.map((link) => {
             const active = pathname === link.href;
             return (
@@ -76,38 +73,24 @@ export default function Navbar() {
                 className={cn(
                   "relative rounded-full px-3.5 py-1.5 text-sm font-medium transition",
                   active
-                    ? "text-neutral-900 dark:text-white"
-                    : "text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white"
+                    ? "text-neutral-900"
+                    : "text-neutral-500 hover:text-neutral-900"
                 )}
               >
                 {active && (
-                  <span className="absolute inset-0 rounded-full bg-neutral-100 dark:bg-white/10" />
+                  <span className="absolute inset-0 rounded-full bg-neutral-100" />
                 )}
                 <span className="relative">{link.label}</span>
               </Link>
             );
           })}
-        </nav>
+        </nav> */}
 
         {/* Right side actions */}
         <div className="flex items-center gap-2">
-          {/* Theme toggle — matches homepage's outlined icon-button style */}
-          <button
-            id="theme-toggle"
-            onClick={toggleTheme}
-            aria-label="Toggle theme"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 text-neutral-500 transition hover:border-neutral-300 hover:bg-neutral-50 hover:text-neutral-900 dark:border-white/10 dark:text-neutral-400 dark:hover:bg-white/10 dark:hover:text-white"
-          >
-            {theme === "light" ? (
-              <Moon className="h-4 w-4" strokeWidth={1.75} />
-            ) : (
-              <Sun className="h-4 w-4" strokeWidth={1.75} />
-            )}
-          </button>
-
           {/* Auth state */}
           {isLoading ? (
-            <div className="h-9 w-9 animate-pulse rounded-full bg-neutral-100 dark:bg-white/10" />
+            <div className="h-9 w-9 animate-pulse rounded-full bg-neutral-100" />
           ) : session ? (
             /* Avatar dropdown */
             <div className="relative" ref={menuRef}>
@@ -115,8 +98,8 @@ export default function Navbar() {
                 id="user-menu-button"
                 onClick={() => setMenuOpen((v) => !v)}
                 className={cn(
-                  "flex items-center gap-2 rounded-full p-1 pr-2.5 transition hover:bg-neutral-100 dark:hover:bg-white/10",
-                  menuOpen && "bg-neutral-100 dark:bg-white/10"
+                  "flex items-center gap-2 rounded-full p-1 pr-2.5 transition hover:bg-neutral-100",
+                  menuOpen && "bg-neutral-100"
                 )}
                 aria-haspopup="true"
                 aria-expanded={menuOpen}
@@ -126,7 +109,7 @@ export default function Navbar() {
                   className={cn(
                     "rounded-full p-[1.5px] transition",
                     menuOpen
-                      ? "bg-gradient-to-br from-orange-400 to-blue-500"
+                      ? "bg-linear-to-br from-orange-400 to-blue-500"
                       : "bg-transparent"
                   )}
                 >
@@ -156,12 +139,12 @@ export default function Navbar() {
               {menuOpen && (
                 <div
                   id="user-menu-dropdown"
-                  className="absolute right-0 mt-2 w-56 animate-fade-in rounded-2xl border border-neutral-200 bg-white p-2 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.2)] dark:border-white/10 dark:bg-neutral-900"
+                  className="absolute right-0 mt-2 w-56 animate-fade-in rounded-2xl border border-neutral-200 bg-white p-2 shadow-[0_16px_40px_-16px_rgba(0,0,0,0.2)]"
                   role="menu"
                 >
                   {/* User info */}
-                  <div className="mb-2 border-b border-neutral-100 px-3 pb-2 dark:border-white/10">
-                    <p className="truncate text-sm font-semibold text-neutral-900 dark:text-white">
+                  <div className="mb-2 border-b border-neutral-100 px-3 pb-2">
+                    <p className="truncate text-sm font-semibold text-neutral-900">
                       {session.user?.name}
                     </p>
                     <p className="truncate text-xs text-neutral-400">
@@ -174,7 +157,7 @@ export default function Navbar() {
                     href="/dashboard"
                     role="menuitem"
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/10"
+                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100"
                   >
                     <span></span>
                     My Dashboard
@@ -185,7 +168,7 @@ export default function Navbar() {
                       href="/developer"
                       role="menuitem"
                       onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/10"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100"
                     >
                       <span></span>
                       Developer Portal
@@ -197,7 +180,7 @@ export default function Navbar() {
                       href="/developer/submit"
                       role="menuitem"
                       onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/10"
+                      className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100"
                     >
                       <span></span>
                       Submit an App
@@ -208,17 +191,17 @@ export default function Navbar() {
                     href="/settings"
                     role="menuitem"
                     onClick={() => setMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100 dark:text-neutral-200 dark:hover:bg-white/10"
+                    className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100"
                   >
                     <span></span>
                     Settings
                   </Link>
 
-                  <div className="mt-1 border-t border-neutral-100 pt-1 dark:border-white/10">
+                  <div className="mt-1 border-t border-neutral-100 pt-1">
                     <button
                       role="menuitem"
                       onClick={() => signOut({ callbackUrl: "/" })}
-                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+                      className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
                     >
                       <span></span>
                       Sign Out
@@ -232,13 +215,13 @@ export default function Navbar() {
             <div className="flex items-center gap-1">
               <Link
                 href="/login"
-                className="hidden rounded-full px-4 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/10 sm:block"
+                className="hidden rounded-full px-4 py-2 text-sm font-medium text-neutral-600 transition hover:bg-neutral-100 sm:block"
               >
                 Sign In
               </Link>
               <Link
                 href="/register"
-                className="group flex items-center gap-1.5 rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700 dark:bg-white dark:text-neutral-900 dark:hover:bg-neutral-200"
+                className="group flex items-center gap-1.5 rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-white transition hover:bg-neutral-700"
               >
                 Get Started
               </Link>
@@ -248,7 +231,7 @@ export default function Navbar() {
           {/* Mobile hamburger */}
           <button
             id="mobile-menu-button"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 md:hidden dark:border-white/10"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 md:hidden"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Open menu"
           >
@@ -273,8 +256,8 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-neutral-200 bg-white/95 px-4 py-4 backdrop-blur-xl md:hidden dark:border-white/10 dark:bg-neutral-950/95">
-          <nav className="flex flex-col gap-1 text-sm">
+        <div className="border-t border-neutral-200 bg-white/95 px-4 py-4 backdrop-blur-xl md:hidden">
+          {/* <nav className="flex flex-col gap-1 text-sm">
             {NAV_LINKS.map((link) => (
               <Link
                 key={link.href}
@@ -283,8 +266,8 @@ export default function Navbar() {
                 className={cn(
                   "rounded-xl px-3 py-2.5 font-medium transition",
                   pathname === link.href
-                    ? "bg-neutral-100 text-neutral-900 dark:bg-white/10 dark:text-white"
-                    : "text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/10"
+                    ? "bg-neutral-100 text-neutral-900"
+                    : "text-neutral-600 hover:bg-neutral-100"
                 )}
               >
                 {link.label}
@@ -295,20 +278,20 @@ export default function Navbar() {
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-xl px-3 py-2.5 font-medium text-neutral-600 transition hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-white/10"
+                  className="rounded-xl px-3 py-2.5 font-medium text-neutral-600 transition hover:bg-neutral-100"
                 >
                   Sign In
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-full bg-neutral-900 px-3 py-2.5 text-center font-semibold text-white dark:bg-white dark:text-neutral-900"
+                  className="rounded-full bg-neutral-900 px-3 py-2.5 text-center font-semibold text-white"
                 >
                   Get Started
                 </Link>
               </>
             )}
-          </nav>
+          </nav> */}
         </div>
       )}
     </header>

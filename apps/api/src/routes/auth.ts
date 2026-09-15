@@ -101,6 +101,58 @@ router.post("/login", async (req: Request, res: Response): Promise<void> => {
   }
 });
 
+// ─── POST /api/auth/oauth ─────────────────────────────────────────────────────
+// Create or retrieve a user from OAuth (Google) sign-in
+router.post("/oauth", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { name, email, image } = req.body;
+
+    if (!email) {
+      res.status(400).json({ error: "Email is required" });
+      return;
+    }
+
+    // Check if user already exists
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new OAuth user
+      user = new User({
+        name: name || email,
+        email,
+        avatar: image,
+        role: "user",
+        isDeveloper: false,
+        developerStatus: "none",
+        googleId: email, // Use email as googleId for identification
+      });
+      await user.save();
+    } else if (!user.avatar && image) {
+      // Update avatar if not set
+      user.avatar = image;
+      await user.save();
+    }
+
+    const token = signToken(user._id.toString(), user.role, user.isDeveloper);
+
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isDeveloper: user.isDeveloper,
+        developerStatus: user.developerStatus,
+        developerProfile: user.developerProfile,
+      },
+    });
+  } catch (err) {
+    console.error("OAuth error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // ─── GET /api/auth/me ─────────────────────────────────────────────────────────
 import { requireAuth, AuthRequest } from "../middleware/auth";
 

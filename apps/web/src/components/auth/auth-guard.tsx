@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
@@ -9,7 +9,7 @@ type AuthGuardProps = {
   /**
    * When true, only users who have registered as a developer can access this route.
    * Regular users (isDeveloper: false) are redirected to /dashboard.
-   * 
+   *
    * Since accounts are unified (one account, multiple roles), the user dashboard
    * NEVER uses this flag — any authenticated user can always access their user space.
    */
@@ -27,6 +27,13 @@ export function AuthGuard({
 
   useEffect(() => {
     if (status === "loading") return;
+
+    // Session exists but has no API token (e.g. API was down during login).
+    // Sign out automatically so the user gets a clean re-login.
+    if (session && (session as any).error === "NoApiToken") {
+      signOut({ callbackUrl: "/login" });
+      return;
+    }
 
     // Not logged in at all — send to login
     if (!session) {
@@ -55,6 +62,9 @@ export function AuthGuard({
       </div>
     );
   }
+
+  // Stale session with no API token — render nothing while signOut redirects
+  if (session && (session as any).error === "NoApiToken") return null;
 
   // Not authenticated — render nothing (redirect happening in useEffect)
   if (!session) return null;
