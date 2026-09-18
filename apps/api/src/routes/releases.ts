@@ -9,7 +9,7 @@ import { requireDeveloper, AuthRequest } from "../middleware/auth";
 const router = Router({ mergeParams: true }); // mergeParams to access :appId from parent
 
 // ─── Multer for release file uploads ─────────────────────────────────────────
-const uploadDir = path.join(process.cwd(), "uploads");
+const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {

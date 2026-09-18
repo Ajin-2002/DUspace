@@ -36,7 +36,7 @@ function maskValue(value: string): string {
 }
 
 // ─── Multer Storage ───────────────────────────────────────────────────────────
-const uploadDir: string = path.join(process.cwd(), "uploads");
+const uploadDir: string = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({
