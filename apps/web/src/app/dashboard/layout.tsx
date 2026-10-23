@@ -1,47 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { useSession } from "next-auth/react";
-import { Menu } from "lucide-react";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { UserSidebar } from "./user-sidebar";
+import { WorkspaceHeader } from "@/components/layout/workspace-header";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <AuthGuard>
-      <div className="flex h-full bg-neutral-50">
+      <div className="flex h-full bg-[#f4f4f5]">
         <UserSidebar
           sidebarOpen={sidebarOpen}
           setSidebarOpen={setSidebarOpen}
         />
 
-        {/* Main Content — only this scrolls */}
-        <main className="flex flex-1 min-w-0 flex-col overflow-y-auto">
-          {/* Mobile Header */}
-          <div className="flex h-[60px] shrink-0 items-center justify-between border-b border-neutral-100 bg-white px-4 lg:hidden">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="rounded-lg p-2 text-neutral-500 transition hover:bg-neutral-100"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-neutral-900 text-xs font-bold text-white">
-              {session?.user?.name?.charAt(0) || "U"}
-            </div>
-          </div>
-
-          {/* Page Content */}
-          <div className="flex-1 p-6">
-            <div className="max-w-7xl mx-auto">
-              {children}
-            </div>
+        <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
+          <WorkspaceHeader
+            kind="user"
+            onMenuClick={() => setSidebarOpen(true)}
+          />
+          <div className="flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            <div className="mx-auto w-full max-w-[1440px]">{children}</div>
           </div>
         </main>
       </div>

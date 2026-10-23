@@ -7,6 +7,13 @@ import Link from "next/link";
 import Container from "./container";
 import { Avatar } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import {
+  ArrowUpRight,
+  Code2,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+} from "lucide-react";
 
 /* ────────────────────────────────────────────────────────────
    DATA
@@ -49,10 +56,16 @@ export default function Navbar() {
   }, []);
 
   const isLoading = status === "loading";
-  const dashboardHref = "/dashboard";
+  const isWorkspace =
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/") ||
+    pathname === "/developer" ||
+    pathname.startsWith("/developer/");
+
+  if (isWorkspace) return null;
 
   return (
-    <header className="sticky top-0 z-50 shrink-0 border-b border-neutral-200/80 bg-white/90 backdrop-blur-md">
+    <header className="sticky top-0 z-50 shrink-0 border-b border-slate-200/80 bg-white/90 shadow-[0_4px_18px_-18px_rgba(15,23,42,0.45)] backdrop-blur-xl">
       <Container className="flex h-16 items-center justify-between">
         {/* Logo — same square-mark language as the homepage app cards */}
         <Link href="/" className="group flex items-center gap-2.5">
@@ -61,6 +74,33 @@ export default function Navbar() {
             DUspace
           </span>
         </Link>
+
+        <nav className="hidden items-center gap-1 md:flex">
+          <Link
+            href="/apps"
+            className={cn(
+              "rounded-full px-4 py-2 text-sm font-semibold transition",
+              pathname.startsWith("/apps")
+                ? "bg-slate-100 text-slate-950"
+                : "text-slate-500 hover:bg-slate-50 hover:text-slate-900",
+            )}
+          >
+            Explore apps
+          </Link>
+          {session?.user?.isDeveloper && (
+            <Link
+              href="/developer"
+              className={cn(
+                "rounded-full px-4 py-2 text-sm font-semibold transition",
+                pathname.startsWith("/developer")
+                  ? "bg-indigo-50 text-indigo-800"
+                  : "text-slate-500 hover:bg-slate-50 hover:text-slate-900",
+              )}
+            >
+              Creator workspace
+            </Link>
+          )}
+        </nav>
 
         {/* Desktop nav links — pill indicator slides under the active item */}
         {/* <nav className="hidden items-center gap-1 md:flex">
@@ -99,7 +139,7 @@ export default function Navbar() {
                 onClick={() => setMenuOpen((v) => !v)}
                 className={cn(
                   "flex items-center gap-2 rounded-full p-1 pr-2.5 transition hover:bg-neutral-100",
-                  menuOpen && "bg-neutral-100"
+                  menuOpen && "bg-neutral-100",
                 )}
                 aria-haspopup="true"
                 aria-expanded={menuOpen}
@@ -110,7 +150,7 @@ export default function Navbar() {
                     "rounded-full p-[1.5px] transition",
                     menuOpen
                       ? "bg-linear-to-br from-orange-400 to-blue-500"
-                      : "bg-transparent"
+                      : "bg-transparent",
                   )}
                 >
                   <Avatar
@@ -124,7 +164,7 @@ export default function Navbar() {
                   fill="currentColor"
                   className={cn(
                     "hidden h-3.5 w-3.5 text-neutral-400 transition-transform duration-200 sm:block",
-                    menuOpen && "rotate-180"
+                    menuOpen && "rotate-180",
                   )}
                 >
                   <path
@@ -159,7 +199,7 @@ export default function Navbar() {
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100"
                   >
-                    <span></span>
+                    <LayoutDashboard className="h-4 w-4 text-neutral-400" />
                     My Dashboard
                   </Link>
 
@@ -170,7 +210,7 @@ export default function Navbar() {
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100"
                     >
-                      <span></span>
+                      <Code2 className="h-4 w-4 text-neutral-400" />
                       Developer Portal
                     </Link>
                   )}
@@ -182,7 +222,7 @@ export default function Navbar() {
                       onClick={() => setMenuOpen(false)}
                       className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100"
                     >
-                      <span></span>
+                      <ArrowUpRight className="h-4 w-4 text-neutral-400" />
                       Submit an App
                     </Link>
                   )}
@@ -193,7 +233,7 @@ export default function Navbar() {
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 rounded-xl px-3 py-2 text-sm text-neutral-700 transition hover:bg-neutral-100"
                   >
-                    <span></span>
+                    <Settings className="h-4 w-4 text-neutral-400" />
                     Settings
                   </Link>
 
@@ -203,7 +243,7 @@ export default function Navbar() {
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-sm text-red-600 transition hover:bg-red-50"
                     >
-                      <span></span>
+                      <LogOut className="h-4 w-4 text-red-400" />
                       Sign Out
                     </button>
                   </div>
@@ -231,11 +271,16 @@ export default function Navbar() {
           {/* Mobile hamburger */}
           <button
             id="mobile-menu-button"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-200 md:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition hover:bg-slate-50 md:hidden"
             onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Open menu"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
           >
-            <svg viewBox="0 0 20 20" fill="currentColor" className="h-4.5 w-4.5">
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="h-4.5 w-4.5"
+            >
               {mobileOpen ? (
                 <path
                   fillRule="evenodd"
@@ -256,42 +301,58 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {mobileOpen && (
-        <div className="border-t border-neutral-200 bg-white/95 px-4 py-4 backdrop-blur-xl md:hidden">
-          {/* <nav className="flex flex-col gap-1 text-sm">
-            {NAV_LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileOpen(false)}
-                className={cn(
-                  "rounded-xl px-3 py-2.5 font-medium transition",
-                  pathname === link.href
-                    ? "bg-neutral-100 text-neutral-900"
-                    : "text-neutral-600 hover:bg-neutral-100"
-                )}
-              >
-                {link.label}
-              </Link>
-            ))}
-            {!session && (
+        <div className="border-t border-slate-200 bg-white/95 px-4 py-4 backdrop-blur-xl md:hidden">
+          <nav className="flex flex-col gap-1 text-sm">
+            <Link
+              href="/apps"
+              onClick={() => setMobileOpen(false)}
+              className={cn(
+                "rounded-xl px-3 py-2.5 font-medium transition",
+                pathname.startsWith("/apps")
+                  ? "bg-slate-100 text-slate-950"
+                  : "text-slate-600 hover:bg-slate-50",
+              )}
+            >
+              Explore apps
+            </Link>
+            {session ? (
               <>
+                <Link
+                  href="/dashboard"
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-xl px-3 py-2.5 font-medium text-slate-600 transition hover:bg-slate-50"
+                >
+                  My dashboard
+                </Link>
+                {session.user?.isDeveloper && (
+                  <Link
+                    href="/developer"
+                    onClick={() => setMobileOpen(false)}
+                    className="rounded-xl px-3 py-2.5 font-medium text-slate-600 transition hover:bg-slate-50"
+                  >
+                    Developer workspace
+                  </Link>
+                )}
+              </>
+            ) : (
+              <div className="mt-2 grid grid-cols-2 gap-2 border-t border-slate-100 pt-3">
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-xl px-3 py-2.5 font-medium text-neutral-600 transition hover:bg-neutral-100"
+                  className="rounded-xl border border-slate-200 px-3 py-2.5 text-center font-semibold text-slate-700"
                 >
-                  Sign In
+                  Sign in
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-full bg-neutral-900 px-3 py-2.5 text-center font-semibold text-white"
+                  className="rounded-xl bg-slate-900 px-3 py-2.5 text-center font-semibold text-white"
                 >
-                  Get Started
+                  Get started
                 </Link>
-              </>
+              </div>
             )}
-          </nav> */}
+          </nav>
         </div>
       )}
     </header>

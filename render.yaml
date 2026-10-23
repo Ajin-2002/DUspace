@@ -15,3 +15,11 @@ services:
         sync: false   # set this manually in Render dashboard
       - key: CLIENT_URL
         sync: false   # set to your frontend URL (e.g. https://your-app.vercel.app)
+      - key: UPLOAD_DIR
+        value: /var/data/uploads
+      - key: PROJECT_STORAGE_DIR
+        value: /var/data/private-projects
+    disk:
+      name: duspace-uploads
+      mountPath: /var/data
+      sizeGB: 10

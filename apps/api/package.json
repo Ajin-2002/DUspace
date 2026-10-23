@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "nodemon --exec tsx src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node dist/index.js",
+    "dev:worker": "tsx src/workers/project-analysis-worker.ts",
+    "worker": "node dist/workers/project-analysis-worker.js",
+    "test": "node --import tsx --test src/**/*.test.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +23,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.3",
     "multer": "^2.2.0",
+    "typescript": "^6.0.3",
     "unzipper": "^0.12.5"
   },
   "devDependencies": {
@@ -31,7 +35,6 @@
     "@types/node": "^20.19.43",
     "@types/unzipper": "^0.10.11",
     "nodemon": "^3.1.14",
-    "tsx": "^4.22.4",
-    "typescript": "^6.0.3"
+    "tsx": "^4.22.4"
   }
 }

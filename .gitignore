@@ -29,6 +29,7 @@ dist
 
 # Runtime uploaded project files
 apps/api/uploads/
+apps/api/private-projects/
 
 
 # Debug

@@ -1,220 +1,183 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import {
-  Globe, Smartphone, Monitor, Server, Package, Terminal,
-  LayoutTemplate, Wrench, Plus, Search, Filter,
-  Loader2, MoreHorizontal, Tag, Settings, Upload, Trash2,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
+import { AlertCircle, ArrowUpRight, Clock3, FolderKanban, Loader2, Plus, Search, Trash2 } from "lucide-react";
 import { getApiUrl } from "@/lib/api";
 
-const PROJECT_TYPE_ICONS: Record<string, React.ElementType> = {
-  "web-app": Globe, "mobile-app": Smartphone, "desktop-app": Monitor,
-  "api-backend": Server, "library-package": Package, "cli-tool": Terminal,
-  "ui-component": LayoutTemplate, "developer-tool": Wrench,
-};
-const PROJECT_TYPE_LABELS: Record<string, string> = {
-  "web-app": "Web App", "mobile-app": "Mobile", "desktop-app": "Desktop",
-  "api-backend": "API / Backend", "library-package": "Library", "cli-tool": "CLI Tool",
-  "ui-component": "UI Component", "developer-tool": "Dev Tool",
-};
-
-type StatusFilter = "all" | "draft" | "published" | "archived";
-
-interface Project {
-  _id: string; name: string; slug: string; shortDescription?: string;
-  projectType: string; category: string; status: string; currentVersion: string;
-  createdAt: string; updatedAt: string;
-  coverImage?: string;
+type WorkspaceStatus = "created" | "uploading" | "validating" | "extracting" | "manifest" | "saving" | "ready" | "failed" | "deleting";
+interface Workspace {
+  id: string;
+  name: string;
+  description: string;
+  sourceType: "zip" | "folder";
+  status: WorkspaceStatus;
+  framework?: string;
+  language?: string;
+  fileCount: number;
+  totalSizeBytes: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export default function MyProjectsPage() {
-  const { data: session } = useSession();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<StatusFilter>("all");
+const STATUS_LABELS: Record<WorkspaceStatus, string> = {
+  created: "Ready to import", uploading: "Uploading", validating: "Validating", extracting: "Extracting",
+  manifest: "Building file list", saving: "Saving", ready: "Ready", failed: "Import failed", deleting: "Deleting",
+};
+
+function statusStyle(status: WorkspaceStatus): string {
+  if (status === "ready") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (status === "failed") return "border-rose-200 bg-rose-50 text-rose-700";
+  if (["created", "uploading", "validating", "extracting", "manifest", "saving"].includes(status)) return "border-slate-200 bg-slate-100 text-slate-700";
+  return "border-slate-200 bg-white text-slate-500";
+}
+
+function readableSize(size: number): string {
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  if (size < 1024 * 1024 * 1024) return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
+
+export default function WorkspacesPage() {
+  const { data: session, status: sessionStatus } = useSession();
+  const token = session?.user?.token;
+  const [projects, setProjects] = useState<Workspace[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [search, setSearch] = useState("");
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [sort, setSort] = useState("updated");
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
+  const [matchingCount, setMatchingCount] = useState(0);
+  const [counts, setCounts] = useState({ total: 0, ready: 0, failed: 0, active: 0 });
+  const [deleting, setDeleting] = useState<string | null>(null);
+  const visibleError = error || (!token && sessionStatus !== "loading" ? "Sign in as a developer to manage workspaces." : "");
+  const showLoading = loading && (sessionStatus === "loading" || Boolean(token));
+
+  const loadProjects = useCallback(async () => {
+    if (!token) return;
+    const params = new URLSearchParams({ q: search, status: statusFilter, sort, page: String(page), limit: "24" });
+    try {
+      const response = await fetch(getApiUrl(`/api/v1/projects?${params}`), { headers: { Authorization: `Bearer ${token}` } });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not load projects.");
+      setError("");
+      setProjects(data.projects ?? []);
+      setCounts(data.counts ?? { total: 0, ready: 0, failed: 0, active: 0 });
+      setMatchingCount(data.pagination?.total ?? 0);
+      setPageCount(Math.max(1, data.pagination?.pages ?? 1));
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "Could not load projects.");
+    } finally {
+      setLoading(false);
+    }
+  }, [page, search, sort, statusFilter, token]);
 
   useEffect(() => {
-    if (!session?.user?.token) return;
-    setIsLoading(true);
-    fetch(getApiUrl("/api/developer/apps"), {
-      headers: { Authorization: `Bearer ${session.user.token}` },
-    })
-      .then((r) => r.json())
-      .then((d) => { setProjects(d.apps || []); setIsLoading(false); })
-      .catch(() => setIsLoading(false));
-  }, [session]);
+    if (!token) return;
+    const trigger = window.setTimeout(() => { void loadProjects(); }, 0);
+    return () => window.clearTimeout(trigger);
+  }, [loadProjects, token]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this project permanently?")) return;
-    setDeletingId(id);
-    await fetch(getApiUrl(`/api/developer/apps/${id}`), {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${session?.user?.token}` },
-    });
-    setProjects((prev) => prev.filter((p) => p._id !== id));
-    setDeletingId(null);
-  };
-
-  const filtered = projects.filter((p) => {
-    const matchesStatus = filter === "all" || p.status === filter;
-    const matchesSearch = !search || p.name.toLowerCase().includes(search.toLowerCase());
-    return matchesStatus && matchesSearch;
-  });
-
-  const counts = {
-    all: projects.length,
-    draft: projects.filter((p) => p.status === "draft").length,
-    published: projects.filter((p) => p.status === "published").length,
-    archived: projects.filter((p) => p.status === "archived").length,
-  };
+  async function deleteProject(project: Workspace) {
+    if (!token || !window.confirm(`Delete “${project.name}” and its imported files? This cannot be undone.`)) return;
+    setDeleting(project.id);
+    try {
+      const response = await fetch(getApiUrl(`/api/v1/projects/${project.id}`), { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not delete this project.");
+      setProjects((current) => current.filter((item) => item.id !== project.id));
+      setMatchingCount((current) => Math.max(0, current - 1));
+      setCounts((current) => ({ ...current, total: Math.max(0, current.total - 1), ready: Math.max(0, current.ready - Number(project.status === "ready")), failed: Math.max(0, current.failed - Number(project.status === "failed")), active: Math.max(0, current.active - Number(["uploading", "validating", "extracting", "manifest", "saving"].includes(project.status))) }));
+      if (projects.length === 1 && page > 1) setPage((current) => current - 1);
+    } catch (deleteError) {
+      window.alert(deleteError instanceof Error ? deleteError.message : "Could not delete this project.");
+    } finally {
+      setDeleting(null);
+    }
+  }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
+    <main className="mx-auto w-full max-w-7xl space-y-7 px-4 py-6 sm:px-6 lg:px-8">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-neutral-900">My Projects</h1>
-          <p className="mt-0.5 text-sm text-neutral-500">Manage all your projects in one place.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Developer workspace</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">My Projects</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">Import existing codebases into private workspaces. Your source files stay unchanged and are stored separately from marketplace releases.</p>
         </div>
-        <Link
-          href="/developer/projects/new"
-          className="flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-700 transition"
-        >
-          <Plus className="h-4 w-4" /> New project
+        <Link href="/developer/projects/new" className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800">
+          <Plus className="h-4 w-4" /> Import Project
         </Link>
-      </div>
+      </header>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search projects…"
-            className="w-full rounded-xl border border-neutral-200 bg-white py-2 pl-10 pr-4 text-sm text-neutral-900 placeholder:text-neutral-500 focus:border-neutral-900 focus:outline-none transition"
-          />
-        </div>
-        <div className="flex rounded-xl border border-neutral-200 bg-neutral-50 p-1 gap-1">
-          {(["all", "draft", "published", "archived"] as StatusFilter[]).map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                "flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition capitalize whitespace-nowrap",
-                filter === f ? "bg-white text-neutral-900 shadow-sm" : "text-neutral-500 hover:text-neutral-700"
-              )}
-            >
-              {f} <span className="rounded-full bg-neutral-200 px-1.5 text-[10px] font-semibold text-neutral-600">{counts[f]}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-6 w-6 animate-spin text-neutral-400" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-neutral-200 bg-neutral-50 py-20 text-center">
-          <div className="flex h-14 w-14 items-center justify-center rounded-full bg-neutral-200 mb-4">
-            <Package className="h-7 w-7 text-neutral-500" />
+      <section className="grid gap-3 sm:grid-cols-3" aria-label="Project summary">
+        {[
+          ["Total projects", counts.total], ["Imported and ready", counts.ready], ["Active or failed", counts.failed + counts.active],
+        ].map(([label, count]) => (
+          <div key={label} className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <p className="text-sm text-slate-500">{label}</p><p className="mt-1 text-2xl font-semibold tracking-tight text-slate-950">{count}</p>
           </div>
-          <p className="text-base font-semibold text-neutral-900">
-            {search ? "No matching projects" : "No projects yet"}
-          </p>
-          <p className="mt-1 text-sm text-neutral-500 mb-6">
-            {search ? "Try a different search term." : "Create your first project to get started."}
-          </p>
-          {!search && (
-            <Link href="/developer/projects/new" className="flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-700 transition">
-              <Plus className="h-4 w-4" /> Create project
-            </Link>
-          )}
+        ))}
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-col gap-3 md:flex-row">
+          <label className="relative flex-1">
+            <span className="sr-only">Search projects</span>
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search by project name" className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-10 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-400 focus:ring-2 focus:ring-slate-100" />
+          </label>
+          <label className="sr-only" htmlFor="workspace-status">Filter by status</label>
+          <select id="workspace-status" value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-slate-400">
+            <option value="all">All statuses</option><option value="ready">Ready</option><option value="created">Not imported</option><option value="failed">Failed</option><option value="active">In progress</option>
+          </select>
+          <label className="sr-only" htmlFor="workspace-sort">Sort projects</label>
+          <select id="workspace-sort" value={sort} onChange={(event) => { setSort(event.target.value); setPage(1); }} className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none focus:border-slate-400">
+            <option value="updated">Recently updated</option><option value="created">Recently created</option><option value="name">Project name</option>
+          </select>
         </div>
-      ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((project) => {
-            const TypeIcon = PROJECT_TYPE_ICONS[project.projectType] || Globe;
-            return (
-              <div key={project._id} className="group relative rounded-2xl border border-neutral-200 bg-white p-5 hover:border-neutral-300 hover:shadow-md transition-all duration-200">
-                <Link href={`/developer/projects/${project._id}`} className="absolute inset-0 rounded-2xl" />
 
-                {project.coverImage ? (
-                  <div className="mb-4 h-32 overflow-hidden rounded-xl bg-neutral-100">
-                    <img src={getApiUrl(project.coverImage)} alt={`${project.name} cover`} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                  </div>
-                ) : null}
-                <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-3">
-                    {!project.coverImage && (
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-neutral-900 text-white">
-                        <TypeIcon className="h-5 w-5" />
-                      </div>
-                    )}
-                    <div>
-                      <p className="font-semibold text-neutral-900 leading-tight">{project.name}</p>
-                      <p className="text-[11px] text-neutral-400 mt-0.5">{PROJECT_TYPE_LABELS[project.projectType] || project.projectType}</p>
-                    </div>
-                  </div>
-                  <span className={cn(
-                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                    project.status === "published" ? "bg-emerald-100 text-emerald-700" :
-                    project.status === "archived" ? "bg-neutral-100 text-neutral-500" :
-                    "bg-amber-100 text-amber-700"
-                  )}>
-                    {project.status}
-                  </span>
+        {showLoading ? (
+          <div className="flex min-h-56 items-center justify-center rounded-2xl border border-slate-200 bg-white"><Loader2 className="h-6 w-6 animate-spin text-slate-500" aria-label="Loading projects" /></div>
+        ) : visibleError ? (
+          <div role="alert" className="flex flex-col items-start gap-3 rounded-2xl border border-rose-200 bg-white p-6 sm:flex-row sm:items-center sm:justify-between"><div className="flex gap-3"><AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-rose-600" /><div><p className="font-semibold text-slate-900">Projects could not be loaded</p><p className="mt-1 text-sm text-slate-600">{visibleError}</p></div></div><button onClick={() => void loadProjects()} className="rounded-lg border border-slate-200 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Try again</button></div>
+        ) : projects.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100"><FolderKanban className="h-6 w-6 text-slate-600" /></div>
+            <h2 className="mt-4 text-lg font-semibold text-slate-950">{search || statusFilter !== "all" ? "No matching projects" : "Your workspace is ready"}</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-600">{search || statusFilter !== "all" ? "Try changing the search or status filter." : "Import a ZIP or a local project folder to keep its original source files in a private workspace."}</p>
+            {!search && statusFilter === "all" && <Link href="/developer/projects/new" className="mt-5 inline-flex h-10 items-center gap-2 rounded-xl bg-slate-950 px-4 text-sm font-semibold text-white hover:bg-slate-800"><Plus className="h-4 w-4" /> Import Project</Link>}
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {projects.map((project) => (
+              <article key={project.id} className="group rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+                <div className="flex items-start justify-between gap-3">
+                  <Link href={`/developer/workspaces/${project.id}`} className="min-w-0 flex-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-slate-400">
+                    <div className="flex items-center gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700"><FolderKanban className="h-5 w-5" /></div><div className="min-w-0"><h2 className="truncate text-base font-semibold text-slate-950 group-hover:text-slate-700">{project.name}</h2><p className="mt-0.5 text-xs text-slate-500">{project.sourceType === "zip" ? "ZIP import" : "Folder import"}</p></div></div>
+                  </Link>
+                  <button type="button" onClick={() => void deleteProject(project)} disabled={deleting === project.id} aria-label={`Delete ${project.name}`} className="rounded-lg p-2 text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 disabled:opacity-50"><Trash2 className="h-4 w-4" /></button>
                 </div>
-
-                {project.shortDescription && (
-                  <p className="text-xs text-neutral-500 mb-3 line-clamp-2">{project.shortDescription}</p>
-                )}
-
-                <div className="flex items-center justify-between border-t border-neutral-100 pt-3">
-                  <div className="flex items-center gap-3 text-xs text-neutral-400">
-                    <span>{project.category}</span>
-                    {project.currentVersion && project.currentVersion !== "—" && (
-                      <span className="font-mono">v{project.currentVersion}</span>
-                    )}
-                  </div>
-                  {/* Quick actions (relative to stacking context) */}
-                  <div className="relative z-10 flex gap-1">
-                    <Link
-                      href={`/developer/projects/${project._id}/releases/new`}
-                      title="Create release"
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 hover:bg-neutral-50 hover:text-neutral-700 transition"
-                    >
-                      <Tag className="h-3.5 w-3.5" />
-                    </Link>
-                    <Link
-                      href={`/developer/projects/${project._id}/settings`}
-                      title="Settings"
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 hover:bg-neutral-50 hover:text-neutral-700 transition"
-                    >
-                      <Settings className="h-3.5 w-3.5" />
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(project._id)}
-                      disabled={deletingId === project._id}
-                      title="Delete"
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 hover:border-red-200 hover:bg-red-50 hover:text-red-500 transition disabled:opacity-50"
-                    >
-                      {deletingId === project._id ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-                    </button>
-                  </div>
+                <p className="mt-3 text-xs text-slate-500">Created {new Date(project.createdAt).toLocaleDateString()}</p>
+                <p className="mt-4 line-clamp-2 min-h-10 text-sm leading-5 text-slate-600">{project.description || "No project description"}</p>
+                <div className="mt-4 flex flex-wrap items-center gap-2">
+                  <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold ${statusStyle(project.status)}`}>{STATUS_LABELS[project.status]}</span>
+                  {project.framework && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{project.framework}</span>}
+                  {project.language && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600">{project.language}</span>}
                 </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
+                <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4 text-xs text-slate-500">
+                  <span className="inline-flex items-center gap-1.5"><Clock3 className="h-3.5 w-3.5" /> Updated {new Date(project.updatedAt).toLocaleDateString()}</span>
+                  <span>{project.status === "ready" ? `${project.fileCount.toLocaleString()} files · ${readableSize(project.totalSizeBytes)}` : "Open project"}<ArrowUpRight className="ml-1 inline h-3.5 w-3.5" /></span>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+        {!loading && !error && pageCount > 1 && <div className="flex items-center justify-between border-t border-slate-200 pt-4"><p className="text-xs text-slate-500">Showing {((page - 1) * 24) + 1}–{Math.min(page * 24, matchingCount)} of {matchingCount}</p><div className="flex gap-2"><button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40">Previous</button><span className="px-2 py-2 text-xs tabular-nums text-slate-500">{page} / {pageCount}</span><button type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page === pageCount} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 disabled:opacity-40">Next</button></div></div>}
+      </section>
+    </main>
   );
 }

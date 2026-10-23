@@ -266,7 +266,7 @@ export default function PublishedAppsPage() {
                 )}
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-lg font-semibold text-neutral-900">{app.name}</h3>
+                    <Link href={`/developer/projects/${app._id}`} className="text-lg font-semibold text-neutral-900 hover:underline">{app.name}</Link>
                     <span
                       className={cn(
                         "px-2.5 py-0.5 rounded-full text-xs font-medium",

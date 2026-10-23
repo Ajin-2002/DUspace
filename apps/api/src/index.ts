@@ -7,14 +7,40 @@ import authRouter from "./routes/auth";
 import developerRouter from "./routes/developer";
 import appsRouter, { publicAppsRouter } from "./routes/apps";
 import releasesRouter from "./routes/releases";
+import projectWorkspacesRouter, { recoverAbandonedProjectImports } from "./routes/project-workspaces";
+import { analysesRouter, projectAnalysesRouter } from "./routes/project-analyses";
+import { runProjectAnalysisWorkers } from "./workers/project-analysis-worker";
+import designLibraryRouter from "./routes/design-library";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // ─── Middleware ───────────────────────────────────────────────────────────────
+function normalizeOrigin(value: string): string {
+  try {
+    return new URL(value.trim()).origin;
+  } catch {
+    return "";
+  }
+}
+
+const allowedClientOrigins = new Set(
+  [process.env.CLIENT_URL, ...(process.env.CLIENT_URLS || "").split(",")]
+    .filter((value): value is string => Boolean(value?.trim()))
+    .map(normalizeOrigin)
+    .filter(Boolean),
+);
+if (!allowedClientOrigins.size) allowedClientOrigins.add("http://localhost:3000");
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin(origin, callback) {
+      if (!origin || allowedClientOrigins.has(normalizeOrigin(origin))) {
+        callback(null, true);
+        return;
+      }
+      callback(null, false);
+    },
     credentials: true,
   })
 );
@@ -35,6 +61,10 @@ app.use("/api/developer", developerRouter);
 app.use("/api/developer", appsRouter);
 app.use("/api/developer/apps/:appId/releases", releasesRouter);
 app.use("/api/apps", publicAppsRouter);
+app.use("/api/v1/projects", projectWorkspacesRouter);
+app.use("/api/v1/projects", projectAnalysesRouter);
+app.use("/api/v1/analyses", analysesRouter);
+app.use("/api/v1/design-library", designLibraryRouter);
 
 // ─── 404 handler ─────────────────────────────────────────────────────────────
 app.use((_req, res) => {
@@ -44,6 +74,10 @@ app.use((_req, res) => {
 // ─── Start ────────────────────────────────────────────────────────────────────
 async function start() {
   await connectDB();
+  await recoverAbandonedProjectImports();
+  void runProjectAnalysisWorkers().catch(() => {
+    console.error("Project analysis worker could not start. Analysis requests will remain queued.");
+  });
   app.listen(PORT, () => {
     console.log(`🚀 API server running on port ${PORT}`);
   });

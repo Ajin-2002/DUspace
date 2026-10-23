@@ -86,7 +86,7 @@ export default function AllReleasesPage() {
           </div>
           <p className="text-base font-semibold text-neutral-900">No releases yet</p>
           <p className="mt-1 text-sm text-neutral-500 mb-6">Create your first project release to see it here.</p>
-          <Link href="/developer/projects" className="flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-700 transition">
+          <Link href="/developer/apps" className="flex items-center gap-2 rounded-xl bg-neutral-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-neutral-700 transition">
             <Package className="h-4 w-4" /> View projects
           </Link>
         </div>

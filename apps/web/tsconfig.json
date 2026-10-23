@@ -19,7 +19,8 @@
       }
     ],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@duspace/design-system": ["../../packages/design-system/src/index.ts"]
     }
   },
   "include": [

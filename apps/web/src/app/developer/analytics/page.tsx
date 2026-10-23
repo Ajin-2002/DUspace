@@ -4,13 +4,17 @@ import { BarChart3, TrendingUp, Users, Download } from "lucide-react";
 
 export default function AnalyticsPage() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Analytics</h1>
-          <p className="mt-1 text-sm text-neutral-400">Track performance metrics across all your apps.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-slate-950">
+            Analytics
+          </h1>
+          <p className="mt-1 text-sm text-slate-500">
+            Track performance across your apps and releases.
+          </p>
         </div>
-        <select className="rounded-xl border border-neutral-800 bg-neutral-900/50 px-4 py-2 text-sm font-medium text-neutral-300 focus:border-blue-500 focus:outline-none">
+        <select className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 shadow-sm focus:border-slate-400 focus:outline-none">
           <option>Last 7 days</option>
           <option>Last 30 days</option>
           <option>This Year</option>
@@ -18,13 +22,16 @@ export default function AnalyticsPage() {
         </select>
       </div>
 
-      <div className="flex flex-col items-center justify-center rounded-xl border border-neutral-800 border-dashed bg-neutral-900/20 py-20 text-center">
-        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-neutral-800 mb-5">
-          <BarChart3 className="h-8 w-8 text-neutral-500" />
+      <div className="flex min-h-[360px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-gradient-to-b from-white to-slate-50 px-6 py-20 text-center">
+        <div className="mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100 ring-1 ring-slate-200">
+          <BarChart3 className="h-7 w-7 text-slate-700" />
         </div>
-        <h3 className="text-lg font-medium text-white">Not enough data</h3>
-        <p className="text-sm text-neutral-400 mt-2 max-w-sm">
-          Analytics will appear here once your apps start getting traffic and downloads.
+        <h3 className="text-lg font-semibold text-slate-900">
+          Not enough data yet
+        </h3>
+        <p className="mt-2 max-w-sm text-sm leading-6 text-slate-500">
+          Analytics will appear here once your apps start getting traffic and
+          downloads.
         </p>
       </div>
     </div>

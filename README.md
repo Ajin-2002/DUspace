@@ -1,159 +1,131 @@
-# Turborepo starter
+# 🚀 DUspace — Developer App Distribution Platform
 
-This Turborepo starter is maintained by the Turborepo core team.
+DUspace is a full-stack **monorepo** platform where developers can publish, distribute, and manage their applications. Users can browse, download, and review apps from a centralized marketplace.
 
-## Using this example
+---
 
-Run the following command:
+## 📁 Repository Structure
 
-```sh
-npx create-turbo@latest
+```
+DUspace/
+├── apps/
+│   ├── api/          # Express + TypeScript REST API (backend)
+│   ├── web/          # Next.js 16 frontend (user & developer portals)
+│   ├── desktop/      # Desktop app (in progress)
+│   └── mobile/       # Mobile app (in progress)
+├── packages/
+│   ├── api-client/   # Shared API client utilities
+│   ├── config/       # Shared configuration
+│   ├── hooks/        # Shared React hooks
+│   ├── types/        # Shared TypeScript types
+│   ├── ui/           # Shared UI component library
+│   ├── utils/        # Shared utility functions
+│   └── validation/   # Shared Zod validation schemas
+├── docs/             # Documentation
+├── scripts/          # Monorepo scripts
+├── turbo.json        # Turborepo pipeline config
+├── pnpm-workspace.yaml
+└── package.json
 ```
 
-## What's inside?
+---
 
-This Turborepo includes the following packages/apps:
+## 🛠️ Tech Stack
 
-### Apps and Packages
+| Layer      | Technology                                      |
+|------------|-------------------------------------------------|
+| Monorepo   | Turborepo + pnpm workspaces                     |
+| Backend    | Express 5, TypeScript, Mongoose, MongoDB Atlas  |
+| Frontend   | Next.js 16, React 19, Tailwind CSS 4            |
+| Auth       | NextAuth.js (Google OAuth + Credentials)        |
+| State      | Zustand, TanStack Query                         |
+| Forms      | React Hook Form + Zod                           |
+| Animation  | Framer Motion                                   |
+| Icons      | Lucide React                                    |
+| File Upload| Multer (disk storage, 500MB limit)              |
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+---
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+## ⚡ Quick Start
 
-### Utilities
+### Prerequisites
 
-This Turborepo has some additional tools already setup for you:
+- Node.js ≥ 18
+- pnpm ≥ 10
+- MongoDB Atlas account (or local MongoDB)
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+### 1. Install Dependencies
 
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo build
+```bash
+cd DUspace
+pnpm install
 ```
 
-Without global `turbo`, use your package manager:
+### 2. Configure Environment Variables
 
-```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+**API** — copy `.env.example` to `.env` in `apps/api/`:
+```bash
+cp apps/api/.env.example apps/api/.env
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+**Web** — copy `.env.example` to `.env.local` in `apps/web/`:
+```bash
+cp apps/web/.env.example apps/web/.env.local
 ```
 
-Without global `turbo`:
+See [`apps/api/README.md`](./apps/api/README.md) and [`apps/web/README.md`](./apps/web/README.md) for all required variables.
 
-```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+### 3. Run All Apps (Development)
+
+```bash
+pnpm dev
 ```
 
-### Develop
+Or run them individually:
 
-To develop all apps and packages, run the following command:
+```bash
+# Terminal 1 — API (http://localhost:5001)
+cd apps/api && pnpm dev
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
+# Terminal 2 — Web (http://localhost:3000)
+cd apps/web && pnpm dev
 ```
 
-Without global `turbo`, use your package manager:
+---
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
-```
+## 📜 Available Scripts (Root)
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+| Script          | Description                          |
+|-----------------|--------------------------------------|
+| `pnpm dev`      | Start all apps in development mode   |
+| `pnpm build`    | Build all apps and packages          |
+| `pnpm lint`     | Run ESLint across all apps           |
+| `pnpm format`   | Format all TS/TSX/MD files           |
+| `pnpm check-types` | TypeScript type-check all apps    |
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+---
 
-```sh
-turbo dev --filter=web
-```
+## 📚 Documentation
 
-Without global `turbo`:
+| File | Description |
+|------|-------------|
+| [`apps/api/README.md`](./apps/api/README.md) | API server setup, routes, and environment |
+| [`apps/web/README.md`](./apps/web/README.md) | Frontend setup, pages, and auth config |
+| [`docs/API_REFERENCE.md`](./docs/API_REFERENCE.md) | Full REST API endpoint reference |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | System architecture and data flow |
+| [`docs/CONTRIBUTING.md`](./docs/CONTRIBUTING.md) | Contribution guidelines |
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+---
 
-### Remote Caching
+## 🌐 Deployment
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+The project is configured for deployment on **Render** via [`render.yaml`](./render.yaml).
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+- **API** → Render Web Service
+- **Web** → Vercel (recommended) or Render Static Site
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+---
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## 📄 License
 
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+MIT © DUspace Team

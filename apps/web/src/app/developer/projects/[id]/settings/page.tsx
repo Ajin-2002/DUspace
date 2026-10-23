@@ -98,14 +98,14 @@ export default function ProjectSettingsPage() {
     if (!confirm("Archive this project? It will be hidden from public view.")) return;
     setIsArchiving(true);
     await fetch(getApiUrl(`/api/developer/apps/${id}/archive`), { method: "PUT", headers: authHeaders });
-    router.push("/developer/projects");
+    router.push("/developer/apps");
   };
 
   const handleDelete = async () => {
     if (!confirm("⚠️ Permanently delete this project? This cannot be undone.")) return;
     setIsDeleting(true);
     await fetch(getApiUrl(`/api/developer/apps/${id}`), { method: "DELETE", headers: authHeaders });
-    router.push("/developer/projects");
+    router.push("/developer/apps");
   };
 
   const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
